@@ -81,15 +81,6 @@ func main() {
 	// bottom middle cell is alive
 	cells[cellCountX/2][cellCountY-1] = 0
 
-	// generate random dots on first layer
-	// for i := 0; i < cellCountX; i++ {
-	// 	if isAlive := rand.Float64() > 0.96; isAlive {
-	// 		cells[i][cellCountY-1] = 0
-	// 	} else {
-	// 		cells[i][cellCountY-1] = ^uint(0)
-	// 	}
-	// }
-
 	for {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch event.(type) {
