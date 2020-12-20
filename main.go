@@ -9,21 +9,19 @@ import (
 )
 
 const (
-	cellSize       = 2
-	cellCountX     = 501
-	cellCountY     = 301
+	cellSize       = 3
+	cellCountX     = 451
+	cellCountY     = 251
+	divisionY      = cellCountY - 2 // the Y level at which to divide GOL the generated CA. Note that this counts from the top of the screen
 	frameSleepTime = time.Millisecond
 	rule           = 1
 )
 
 type grid [cellCountX][cellCountY]uint
 
-type color struct {
-	R uint8
-	G uint8
-	B uint8
-	S uint // interpolation steps between this and the next color
-}
+// colors are formatted as 0xRRGGBBSS (hex) where S is
+// the number of interpolation steps with the next color
+type color uint32
 
 // cells of the grid
 // if val == 0, cell is alive. any number after that is how many frames its been dead for
@@ -31,17 +29,18 @@ var cells grid
 var colors []*sdl.Color
 
 func main() {
-	palette := []color{
-		{R: 255, G: 255, B: 255, S: 1},
-		{R: 113, G: 28, B: 145, S: 5},
-		{R: 234, G: 0, B: 217, S: 5},
-		{R: 10, G: 189, B: 198, S: 30},
-		{R: 19, G: 62, B: 124, S: 80},
-		{R: 0, G: 0, B: 0, S: 1},
+	// store a color palette
+	p := []color{
+		0xffffff01, // first color is a live cell
+		0x711C9108, // ...everything here is dead
+		0xea00d91b, // and solely for aesthetic
+		0x0adbc640, // purposes.
+		0x133ea47d,
+		0x00000001, // last color is black with step=1
 	}
 
 	// generate interpolated color array from the palette
-	colors = *GenColorArray(&palette)
+	colors = *GenColorArray(&p)
 
 	// initialize sdl
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
@@ -116,13 +115,13 @@ func main() {
 				// both rulesets share the middle row
 
 				// conway's game of life in upper half
-				if float64(j) <= cellCountY/1.2 {
+				if float64(j) <= divisionY {
 					// compute next state
-					nextState[i][j] = LogicGOL(i, j, cells[i][j])
+					nextState[i][j] = LogicGOL(&cells, i, j, cells[i][j])
 				}
 
 				// shift up all rows in lower half by 1 each frame
-				if float64(j) >= cellCountY/1.2 {
+				if float64(j) >= divisionY {
 					nextState[i][j] = cells[i][int(math.Min(float64(j+1), float64(cellCountY-1)))]
 				}
 			}
